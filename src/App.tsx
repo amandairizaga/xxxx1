@@ -333,6 +333,7 @@ export default function App() {
       setConfigError(null);
       if (parsed.length > 0) {
         setActiveProjectId(parsed[0].id);
+        setScreen('fill');
       }
     } catch (err: any) {
       setConfigError(err.message || 'Erro ao processar. Verifique se o formato é compatível.');
@@ -371,8 +372,8 @@ export default function App() {
   // Remove individual project completely from the active project list and clear allocated hours
   const handleRemoveProjectFromList = (idToExclude: string) => {
     triggerConfirm(
-      'Remover ID do Backlog',
-      `Tem certeza de que deseja remover o ID "${idToExclude}" e exclui-lo completamente do backlog? Todos os registros de horas para ele também serão limpos.`,
+      'Remover ID da Lista',
+      `Tem certeza de que deseja remover o ID "${idToExclude}" e exclui-lo completamente da lista? Todos os registros de horas para ele também serão limpos.`,
       () => {
         setProjects((prev) => prev.filter((p) => p.id !== idToExclude));
         
@@ -439,7 +440,7 @@ export default function App() {
   const handleResetAllLocalStorage = () => {
     triggerConfirm(
       'Resetar Aplicação',
-      'Tem certeza de que deseja restaurar a aplicação ao estado inicial? Todos os dados salvos e backlog colado serão removidos.',
+      'Tem certeza de que deseja restaurar a aplicação ao estado inicial? Todos os dados salvos e a lista colada serão removidos.',
       () => {
         localStorage.clear();
         setProjects(DEFAULT_PROJECTS);
@@ -569,25 +570,17 @@ G15\tAlinhamento com cliente e agendas com o time comercial`;
               <div className="absolute right-0 top-0 translate-x-10 -translate-y-10 w-40 h-40 bg-indigo-50 rounded-full blur-2xl opacity-60"></div>
               
               <div className="max-w-4xl relative z-10">
-                <span className="text-xs font-mono text-indigo-600 font-bold tracking-wider uppercase bg-indigo-50 px-2.5 py-1 rounded-sm">
-                  Ambiente Prático & Livre de Contas de Membros
-                </span>
-                <h2 className="font-display font-bold text-2xl md:text-3xl text-slate-900 mt-3 tracking-tight">
-                  Preenchimento Rápido de Horas por ID de Projetos
+                <h2 className="font-display font-bold text-2xl md:text-3xl text-slate-900 tracking-tight">
+                  Alocação de horas
                 </h2>
-                <p className="text-sm md:text-base text-slate-500 mt-2 leading-relaxed">
-                  Evite fazer cálculos lentos célula por célula. Importe seus IDs (ou use o padrão), 
-                  lance suas horas em um fluxo sequencial passo-a-passo e, por fim, copie a coluna inteira 
-                  para colar diretamente de volta na planilha operacional. Simples, rápido e inteligente.
-                </p>
               </div>
             </div>
 
             {/* THREE BLOCK GRID FOCUSING ON HIGH-CONTRAST IMPORTER */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div className="max-w-3xl mx-auto space-y-6">
               
-              {/* LEFT & CENTER BOX (8 COLS): COPIER AREA HIGHLIGHTED (DESTAQUE MÁXIMO) */}
-              <div className="lg:col-span-7 space-y-4">
+              {/* COPIER AREA HIGHLIGHTED (DESTAQUE MÁXIMO) */}
+              <div className="space-y-6">
                 
                 {/* Highlight Container */}
                 <div className="bg-white border-2 border-indigo-500 rounded-2xl p-6 shadow-md relative overflow-hidden ring-4 ring-indigo-500/10">
@@ -610,11 +603,8 @@ G15\tAlinhamento com cliente e agendas com o time comercial`;
                   </div>
 
                   {/* Excel Importer text area */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                        Espaço para Colar (Tabulado ou Separado por Ponto-e-vírgula)
-                      </span>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-end">
                       <button
                         onClick={handlePrefillSampleProjectText}
                         className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold underline flex items-center gap-1 cursor-pointer"
@@ -639,188 +629,47 @@ G15\tAlinhamento com cliente e agendas com o time comercial`;
                       </div>
                     )}
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col gap-3">
                       <button
                         onClick={handleParseProjectsList}
-                        className="flex-1 min-w-[200px] py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-indigo-100 flex items-center justify-center gap-2 cursor-pointer"
+                        className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-indigo-100 flex items-center justify-center gap-2 cursor-pointer"
                       >
                         <Upload className="w-4 h-4" />
-                        Substituir Atual por {pastedProjectsText.split('\n').filter(Boolean).length} IDs do Backlog
+                        Carregar Lista
                       </button>
                     </div>
-                  </div>
-                </div>
 
-                {/* Manual insertion subcard */}
-                <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
-                  <div className="flex items-center gap-1.5 mb-3">
-                    <Plus className="w-4 h-4 text-indigo-600" />
-                    <h4 className="font-display font-semibold text-slate-800 text-xs uppercase tracking-wider">
-                      Ou inclua um único ID manualmente:
-                    </h4>
-                  </div>
+                    {projects.length > 0 && (
+                      <div className="flex justify-between items-center text-[11px] pt-1 border-t border-slate-100 mt-2">
+                        <button
+                          onClick={() => {
+                            triggerConfirm(
+                              'Apagar Lista Atual',
+                              'Tem certeza de que deseja apagar todos os IDs da lista ativa? Isso limpará os IDs e todos os lançamentos ativos salvos.',
+                              () => {
+                                setProjects([]);
+                                setActiveProjectId('');
+                              }
+                            );
+                          }}
+                          className="text-slate-400 hover:text-rose-600 transition-colors cursor-pointer flex items-center gap-1 font-semibold"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Apagar Lista Atual ({projects.length} IDs)
+                        </button>
 
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-                    <div className="md:col-span-3">
-                      <input
-                        type="text"
-                        value={newProjectId}
-                        onChange={(e) => setNewProjectId(e.target.value)}
-                        placeholder="ID ex: C04"
-                        className="w-full text-xs font-mono p-2.5 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-indigo-500 text-slate-800 font-bold bg-white"
-                      />
-                    </div>
-                    <div className="md:col-span-6">
-                      <input
-                        type="text"
-                        value={newProjectDesc}
-                        onChange={(e) => setNewProjectDesc(e.target.value)}
-                        placeholder="Nome ou Descrição detalhada do projeto..."
-                        className="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-indigo-500 text-slate-800 bg-white"
-                      />
-                    </div>
-                    <div className="md:col-span-3">
-                      <button
-                        onClick={handleAddNewProjectManual}
-                        className="w-full py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-xs transition-colors cursor-pointer flex items-center justify-center gap-1 shadow-2xs border border-indigo-100"
-                      >
-                        <Plus className="w-4 h-4" /> Adicionar ID
-                      </button>
-                    </div>
-                  </div>
-
-                  {manualAddError && (
-                    <p className="text-[11px] text-rose-600 mt-2 font-medium flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5" />
-                      {manualAddError}
-                    </p>
-                  )}
-                </div>
-
-              </div>
-
-              {/* RIGHT BOX (5 COLS): ACTIVE LIST PREVIEW & SYSTEM TRIGGER */}
-              <div className="lg:col-span-5 space-y-4">
-                
-                {/* Active memory projects list card */}
-                <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <div>
-                      <h3 className="font-display font-semibold text-slate-900 text-xs uppercase tracking-wider">
-                        IDs Ativos no Backlog ({projects.length})
-                      </h3>
-                      <p className="text-[10px] text-slate-400 mt-0.5">Clique em "Lixeira" para excluir IDs incorretos</p>
-                    </div>
-                    
-                    <button
-                      onClick={() => {
-                        triggerConfirm(
-                          'Apagar Todo o Backlog',
-                          'Tem certeza de que deseja apagar todos os IDs do backlog ativo? Isso limpará a lista inteira e todos os lançamentos ativos salvos.',
-                          () => {
-                            setProjects([]);
-                            setActiveProjectId('');
-                          }
-                        );
-                      }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-rose-600 bg-rose-50 border border-rose-100 hover:bg-rose-100/80 hover:border-rose-200 rounded-xl cursor-pointer transition-all"
-                      title="Apagar backlog antigo para colar um novo"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      Esvaziar Lista / Apagar Backlog Antigo
-                    </button>
-                  </div>
-
-                  {/* Backlog Item List Visualizer */}
-                  <div className="border border-slate-100 rounded-xl overflow-hidden max-h-[300px] overflow-y-auto bg-slate-50">
-                    <table className="w-full text-xs text-left table-fixed">
-                      <thead className="bg-slate-100 text-slate-500 font-mono text-[10px] uppercase sticky top-0 border-b border-slate-150">
-                        <tr>
-                          <th className="p-2.5 w-24 text-left font-bold">ID</th>
-                          <th className="p-2.5 text-left font-bold">Descrição</th>
-                          <th className="p-2.5 w-14 text-center font-bold">Apagar</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 font-mono">
-                        {projects.map((proj) => {
-                          const hasHrs = allocations[proj.id] && (
-                            (allocations[proj.id].ideacao || 0) +
-                            (allocations[proj.id].gravacao || 0) +
-                            (allocations[proj.id].construcao || 0) +
-                            (allocations[proj.id].conducao || 0) +
-                            (allocations[proj.id].agendas || 0) +
-                            (allocations[proj.id].pos_producao || 0)
-                          ) > 0;
-
-                          return (
-                            <tr key={proj.id} className="hover:bg-indigo-50/20 bg-white">
-                              <td className="p-2.5 font-bold text-slate-700 truncate text-left flex items-center gap-1">
-                                {hasHrs && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title="Horas preenchidas" />}
-                                {proj.id}
-                              </td>
-                              <td className="p-2.5 truncate text-slate-500 text-left font-sans text-xs" title={proj.description}>
-                                {proj.description}
-                              </td>
-                              <td className="p-2 text-center">
-                                <button
-                                  onClick={() => handleRemoveProjectFromList(proj.id)}
-                                  className="p-1.5 hover:bg-rose-50 text-rose-500 hover:text-rose-700 rounded-lg cursor-pointer transition-colors inline-flex items-center justify-center"
-                                  title="Remover ID integralmente"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-
-                        {projects.length === 0 && (
-                          <tr>
-                            <td colSpan={3} className="p-8 text-center text-slate-400 font-sans">
-                              Nenhum ID ativo. Use a área de cópia ao lado para importar os IDs da planilha.
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* RESET ENTIRE STATE (BACKLOG & ALLOCATIONS) */}
-                  <div className="flex items-center justify-between text-[11px] pt-1">
-                    <button
-                      onClick={handleResetAllLocalStorage}
-                      className="text-slate-400 hover:text-rose-600 transition-colors cursor-pointer flex items-center gap-1"
-                    >
-                      <RefreshCcw className="w-3 h-3" />
-                      Resetar Aplicação Original
-                    </button>
-                    {projectsAllocatedCount > 0 && (
-                      <span className="text-emerald-600 font-semibold font-mono">
-                        {projectsAllocatedCount} IDs com horas salvas
-                      </span>
+                        <button
+                          onClick={handleResetAllLocalStorage}
+                          className="text-slate-400 hover:text-rose-600 transition-colors cursor-pointer flex items-center gap-1 font-semibold"
+                        >
+                          <RefreshCcw className="w-3 h-3" />
+                          Resetar Tudo para o Padrão
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
 
-                {/* GIANT ACTION LAUNCHER BUTTON */}
-                {projects.length > 0 ? (
-                  <button
-                    onClick={() => {
-                      if (!activeProjectId) {
-                        setActiveProjectId(projects[0].id);
-                      }
-                      setScreen('fill');
-                    }}
-                    className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold transition-all shadow-md flex items-center justify-center gap-2 group cursor-pointer text-sm"
-                  >
-                    <span>Iniciar Lancamento de Horas</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform text-indigo-400" />
-                  </button>
-                ) : (
-                  <div className="p-4 bg-amber-50 border border-amber-100 rounded-2xl text-center text-xs text-amber-800 font-medium">
-                    Importe ou configure a lista de IDs para habilitar o lançamento de horas.
-                  </div>
-                )}
               </div>
 
             </div>
@@ -974,7 +823,7 @@ G15\tAlinhamento com cliente e agendas com o time comercial`;
                   onClick={() => setScreen('setup')}
                   className="w-full py-2 bg-slate-50 hover:bg-slate-150 text-slate-600 rounded-xl text-xs font-semibold border border-slate-200 transition-colors cursor-pointer text-center block"
                 >
-                  ⚙️ Configurações e Backlog
+                  ⚙️ Carregar Nova Lista / Configurações
                 </button>
                 <button
                   onClick={() => setScreen('summary')}
@@ -987,29 +836,6 @@ G15\tAlinhamento com cliente e agendas com o time comercial`;
 
             {/* Main Interactive Allocator Card */}
             <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-100 p-6 md:p-8 shadow-xs space-y-6 order-1 lg:order-2">
-              
-              {/* TOP ACTION HIGH-VISIBILITY BANNER BAR - BRINGS SUMMARY CLOSE TO THE USER */}
-              <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl p-4 md:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm shadow-emerald-100">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-emerald-200 animate-pulse" />
-                    <span className="text-[10px] font-mono tracking-wider font-bold uppercase text-emerald-100 bg-emerald-700/30 px-2 py-0.5 rounded-md">
-                      Status Global de Lançamento
-                    </span>
-                  </div>
-                  <p className="text-xs text-emerald-50 leading-relaxed mt-1">
-                    Você já alocou <strong className="text-white font-bold">{grandTotalAllocatedHours.toString().replace('.', ',')}h</strong> em <strong className="text-white font-bold">{projectsAllocatedCount} de {projects.length} IDs</strong> ativos no backlog.
-                  </p>
-                </div>
-                
-                <button
-                  onClick={() => setScreen('summary')}
-                  className="w-full sm:w-auto py-2.5 px-5 bg-white hover:bg-emerald-50 text-emerald-800 font-sans font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 hover:scale-[1.02] cursor-pointer"
-                >
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  Visualizar Resumo Geral & Copiar
-                </button>
-              </div>
               
               {/* CURRENT ACTIVE PROJECT CARD CONTAINER */}
               <div className="bg-slate-50 rounded-2xl border border-slate-100 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1174,24 +1000,6 @@ G15\tAlinhamento com cliente e agendas com o time comercial`;
                   ID Anterior ({projects[activeProjectIndex - 1]?.id || 'Nenhum'})
                 </button>
 
-                {/* Progress dot indicator */}
-                <div className="hidden md:flex items-center gap-1">
-                  {projects.map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => setActiveProjectId(p.id)}
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        activeProjectId === p.id
-                          ? 'bg-indigo-600 ring-2 ring-indigo-200'
-                          : allocations[p.id]
-                          ? 'bg-emerald-500'
-                          : 'bg-slate-200'
-                      }`}
-                      title={`${p.id}: ${p.description}`}
-                    />
-                  ))}
-                </div>
-
                 <div className="w-full sm:w-auto flex items-center gap-2">
                   {/* Clean launch block */}
                   <button
@@ -1250,7 +1058,7 @@ G15\tAlinhamento com cliente e agendas com o time comercial`;
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-xs transition-colors cursor-pointer border border-indigo-150"
               >
                 <ChevronLeft className="w-4 h-4" />
-                ⚙️ Voltar ao Início (Colar Backlog / IDs)
+                ⚙️ Voltar ao Início (Carregar Nova Lista / IDs)
               </button>
               
               <button
@@ -1334,40 +1142,6 @@ G15\tAlinhamento com cliente e agendas com o time comercial`;
                     </>
                   )}
                 </button>
-
-                {/* Textbox container displaying the clipboard columns content */}
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Visualização do Clip de Cópia (Valores verticais):
-                  </label>
-                  <div className="bg-slate-50 border border-slate-150 p-4 rounded-xl font-mono text-xs max-h-[180px] overflow-y-auto space-y-1">
-                    {projects.map((proj, idx) => {
-                      const breakdown = allocations[proj.id];
-                      const val = breakdown
-                        ? (breakdown.ideacao || 0) +
-                          (breakdown.gravacao || 0) +
-                          (breakdown.construcao || 0) +
-                          (breakdown.conducao || 0) +
-                          (breakdown.agendas || 0) +
-                          (breakdown.pos_producao || 0)
-                        : 0;
-
-                      return (
-                        <div key={proj.id} className="flex justify-between border-b border-slate-100/50 pb-1">
-                          <span className="text-slate-400 font-normal">
-                            Linha {idx + 1} ({proj.id}):
-                          </span>
-                          <span className="font-bold text-slate-800">
-                            {val > 0 ? val.toString().replace('.', ',') : ''}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <p className="text-[10px] text-slate-400 leading-tight">
-                    *Nota: A ordem dos valores corresponde exatamente aos IDs do backlog para evitar erros de decalagem.
-                  </p>
-                </div>
 
                 <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-xs text-amber-800 space-y-1.5">
                   <div className="font-bold flex items-center gap-1">
@@ -1515,7 +1289,7 @@ G15\tAlinhamento com cliente e agendas com o time comercial`;
                         Atenção: Limpeza Completa
                       </div>
                       <p className="text-[11px] text-rose-600 font-sans leading-relaxed">
-                        Deseja apagar os lançamentos atuais para iniciar do zero? O backlog de IDs e as configurações continuarão salvos.
+                        Deseja apagar os lançamentos atuais para iniciar do zero? A lista de IDs de projetos e as configurações continuarão salvas.
                       </p>
                     </div>
                     
