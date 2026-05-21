@@ -39,26 +39,10 @@ import {
 
 export default function App() {
   // --- STATE ---
-  const [projects, setProjects] = useState<ProjectID[]>(() => {
-    try {
-      const saved = localStorage.getItem('allocated_projects_flat');
-      return saved ? JSON.parse(saved) : DEFAULT_PROJECTS;
-    } catch (e) {
-      console.error("Erro ao carregar projetos do localStorage:", e);
-      return DEFAULT_PROJECTS;
-    }
-  });
+  const [projects, setProjects] = useState<ProjectID[]>([]);
   
   // Clean, flat allocations state (one generic user session, no person mixing up)
-  const [allocations, setAllocations] = useState<{ [projectId: string]: HoursBreakdown }>(() => {
-    try {
-      const saved = localStorage.getItem('allocated_hours_flat_v3');
-      return saved ? JSON.parse(saved) : {};
-    } catch (e) {
-      console.error("Erro ao carregar alocações do localStorage:", e);
-      return {};
-    }
-  });
+  const [allocations, setAllocations] = useState<{ [projectId: string]: HoursBreakdown }>({});
 
   const [activeProjectId, setActiveProjectId] = useState<string>('');
   const [screen, setScreen] = useState<'setup' | 'fill' | 'summary'>('setup');
@@ -142,13 +126,6 @@ export default function App() {
   }, [searchTerm, filteredProjects, activeProjectId]);
 
   // --- PERSISTENCE ---
-  useEffect(() => {
-    localStorage.setItem('allocated_projects_flat', JSON.stringify(projects));
-  }, [projects]);
-
-  useEffect(() => {
-    localStorage.setItem('allocated_hours_flat_v3', JSON.stringify(allocations));
-  }, [allocations]);
 
   // Handle activeProjectId initialization
   useEffect(() => {
@@ -436,19 +413,7 @@ export default function App() {
     );
   };
 
-  // Reset entire saved database
-  const handleResetAllLocalStorage = () => {
-    triggerConfirm(
-      'Resetar Aplicação',
-      'Tem certeza de que deseja restaurar a aplicação ao estado inicial? Todos os dados salvos e a lista colada serão removidos.',
-      () => {
-        localStorage.clear();
-        setProjects(DEFAULT_PROJECTS);
-        setAllocations({});
-        setScreen('setup');
-      }
-    );
-  };
+
 
   // Help sample project text area prefill
   const handlePrefillSampleProjectText = () => {
@@ -639,34 +604,7 @@ G15\tAlinhamento com cliente e agendas com o time comercial`;
                       </button>
                     </div>
 
-                    {projects.length > 0 && (
-                      <div className="flex justify-between items-center text-[11px] pt-1 border-t border-slate-100 mt-2">
-                        <button
-                          onClick={() => {
-                            triggerConfirm(
-                              'Apagar Lista Atual',
-                              'Tem certeza de que deseja apagar todos os IDs da lista ativa? Isso limpará os IDs e todos os lançamentos ativos salvos.',
-                              () => {
-                                setProjects([]);
-                                setActiveProjectId('');
-                              }
-                            );
-                          }}
-                          className="text-slate-400 hover:text-rose-600 transition-colors cursor-pointer flex items-center gap-1 font-semibold"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          Apagar Lista Atual ({projects.length} IDs)
-                        </button>
 
-                        <button
-                          onClick={handleResetAllLocalStorage}
-                          className="text-slate-400 hover:text-rose-600 transition-colors cursor-pointer flex items-center gap-1 font-semibold"
-                        >
-                          <RefreshCcw className="w-3 h-3" />
-                          Resetar Tudo para o Padrão
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </div>
 
