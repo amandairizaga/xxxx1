@@ -1,0 +1,8 @@
+{
+  "name": "Alocador de Horas",
+  "description": "Facilitador de alocação de horas para equipes de liderados com cálculo de atividades e cópia direta para planilhas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
